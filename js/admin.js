@@ -50,8 +50,9 @@
   async function tabBerita(c) {
     c.innerHTML = '<p class="muted">Memuat...</p>';
     if (!H.S.data) await H.refresh(); // pastikan daftar kategori sudah termuat
+    if (!c.isConnected) return; // pengguna sudah pindah tab selama memuat
     if (!H.S.data) { c.innerHTML = pesan({ success: false, message: 'Data portal belum dapat dimuat.' }); return; }
-    const r = await API.admin('adminInformasi'); if (!r.success) { c.innerHTML = pesan(r); return; }
+    const r = await API.admin('adminInformasi'); if (!c.isConnected) return; if (!r.success) { c.innerHTML = pesan(r); return; }
     A.info = r.data; gambarBerita(c);
   }
   function gambarBerita(c) {
@@ -109,7 +110,7 @@
       '<div><label for="r-c">Counter</label><select id="r-c"><option value="">Semua</option>' + opsi(d.counter) + '</select></div><div><label for="r-j">Jabatan</label><select id="r-j"><option value="">Semua</option>' + opsi(d.jabatan) + '</select></div></div>' +
       '<div class="bar2"><span class="muted" id="r-n"></span><button type="button" class="btn o s" id="r-csv">Unduh CSV</button></div>' +
       '<div class="tw"><table><thead><tr><th>Nomor</th><th>Nama</th><th>Counter</th><th>Jabatan</th><th>Status</th><th>Waktu baca</th></tr></thead><tbody id="r-b"></tbody></table></div>';
-    const muatLap = async () => { $('#r-b').innerHTML = '<tr><td colspan="6">Memuat...</td></tr>'; const r = await API.admin('laporan', { idInformasi: $('#r-i').value }); if (!r.success) { $('#r-b').innerHTML = '<tr><td colspan="6">' + esc(r.message) + '</td></tr>'; return; } A.lap = r.data; gambarLap(); };
+    const muatLap = async () => { $('#r-b').innerHTML = '<tr><td colspan="6">Memuat...</td></tr>'; const r = await API.admin('laporan', { idInformasi: $('#r-i').value }); if (!c.isConnected) return; if (!r.success) { $('#r-b').innerHTML = '<tr><td colspan="6">' + esc(r.message) + '</td></tr>'; return; } A.lap = r.data; gambarLap(); };
     const baris = () => { const q = $('#r-q').value.toLowerCase(), s = $('#r-s').value, cc = $('#r-c').value, j = $('#r-j').value;
       return A.lap.filter(x => (!q || x.nomor.toLowerCase().includes(q) || x.nama.toLowerCase().includes(q)) && (!s || x.status === s) && (!cc || x.counter === cc) && (!j || x.jabatan === j)); };
     const gambarLap = () => { const b = baris(); $('#r-b').innerHTML = b.map(x => '<tr><td>' + esc(x.nomor) + '</td><td>' + esc(x.nama) + '</td><td>' + esc(x.counter) + '</td><td>' + esc(x.jabatan) + '</td><td>' + (x.status === 'sudah' ? 'Sudah' : 'Belum') + '</td><td>' + esc(x.waktu || '-') + '</td></tr>').join('') || '<tr><td colspan="6">Tidak ada data yang cocok.</td></tr>';
@@ -149,9 +150,45 @@
       const r = await API.admin('simpanPengguna', { username: $('#t-u').value, nama: $('#t-n').value, sandi: $('#t-p').value }); $('#t-o').innerHTML = pesan(r); if (r.success) ev.target.reset(); });
   }
 
+  /* ---------- Tab Tampilan (latar hero dan efek awan) ---------- */
+  async function tabTampilan(c) {
+    if (!H.S.data) { c.innerHTML = '<p class="muted">Memuat...</p>'; await H.refresh(); if (!c.isConnected) return; }
+    const t = Object.assign({ mode: 'bawaan', warna: '#0f2a3a', awan: 'halus', fotoId: '' }, (H.S.data && H.S.data.tampilan) || {});
+    let foto = null; // foto baru yang sudah dikecilkan, belum disimpan
+    const radio = (nama, nilai, label, pilih) => '<label><input type="radio" name="' + nama + '" value="' + nilai + '"' + (pilih === nilai ? ' checked' : '') + '>' + label + '</label>';
+    c.innerHTML = '<div class="box"><h3 class="m0">Latar beranda</h3><p class="muted">Berlaku untuk bagian atas beranda saja. Bagian berita dan tabel tetap polos agar mudah dibaca.</p>' +
+      '<div class="tpv" id="tv" aria-label="Pratinjau latar"><div class="lat"></div></div>' +
+      '<label id="t-lj">Jenis latar</label><div class="opt" role="radiogroup" aria-labelledby="t-lj">' + radio('tm', 'bawaan', 'Bawaan (gunung dan hutan)', t.mode) + radio('tm', 'foto', 'Foto sendiri', t.mode) + radio('tm', 'warna', 'Warna polos', t.mode) + '</div>' +
+      '<div id="t-bf"><label for="t-f">Foto latar (JPG, PNG, atau WebP). Dikecilkan otomatis ke lebar 1600 px.</label><input type="file" id="t-f" accept="image/*"></div>' +
+      '<div id="t-bw"><label for="t-w">Warna latar</label><input type="color" id="t-w" value="' + esc(t.warna) + '"></div>' +
+      '<label id="t-la">Efek awan</label><div class="opt" role="radiogroup" aria-labelledby="t-la">' + radio('ta', 'mati', 'Mati', t.awan) + radio('ta', 'halus', 'Halus', t.awan) + radio('ta', 'sedang', 'Sedang', t.awan) + '</div>' +
+      '<p><button type="button" class="btn g" id="t-s">Simpan tampilan</button></p><div id="t-o" role="alert"></div></div>';
+    const nilai = n => c.querySelector('input[name="' + n + '"]:checked').value;
+    const keadaan = () => ({ mode: nilai('tm'), awan: nilai('ta'), warna: $('#t-w').value, fotoId: t.fotoId, fotoUrl: foto ? foto.url : '' });
+    const segar = () => { const k = keadaan(); LATAR.pasang($('#tv .lat'), k); $('#t-bf').classList.toggle('hid', k.mode !== 'foto'); $('#t-bw').classList.toggle('hid', k.mode !== 'warna'); };
+    c.querySelectorAll('input[type=radio],#t-w').forEach(el => el.addEventListener('input', segar));
+    $('#t-f').addEventListener('change', async ev => {
+      const f = ev.target.files[0]; if (!f) return;
+      try { foto = await LATAR.kecilkan(f); $('#t-o').innerHTML = '<div class="nt ok">Foto siap (' + Math.round(foto.b64.length * 0.75 / 1024) + ' KB setelah dikecilkan). Tekan Simpan tampilan untuk menerapkan.</div>'; }
+      catch (e) { foto = null; ev.target.value = ''; $('#t-o').innerHTML = pesan({ success: false, message: e.message }); }
+      segar();
+    });
+    $('#t-s').addEventListener('click', async () => {
+      const k = keadaan(), b = $('#t-s');
+      if (k.mode === 'foto' && !foto && !t.fotoId) { $('#t-o').innerHTML = pesan({ success: false, message: 'Pilih foto terlebih dahulu, atau ganti jenis latar.' }); return; }
+      b.disabled = true; b.textContent = 'Menyimpan...';
+      const r = await API.admin('simpanTampilan', { data: { mode: k.mode, awan: k.awan, warna: k.warna, foto: foto ? { nama: foto.nama, mime: foto.mime, b64: foto.b64 } : null } }, 120000);
+      b.disabled = false; b.textContent = 'Simpan tampilan';
+      if (r.success) { t.fotoId = (r.data && r.data.fotoId) || t.fotoId; foto = null; $('#t-f').value = ''; H.S.data.tampilan = { mode: k.mode, awan: k.awan, warna: k.warna, fotoId: t.fotoId }; H.refresh(); toast(r.message); $('#t-o').innerHTML = ''; }
+      else $('#t-o').innerHTML = pesan(r.message === 'Aksi tidak dikenal.' ? { success: false, message: 'Backend belum diperbarui. Tempel Kode.gs versi terbaru di Apps Script, lalu buat versi deployment baru.' } : r);
+    });
+    segar();
+  }
+
   H.spvTabs.berita = { label: 'Berita', render: tabBerita };
   H.spvTabs.laporan = { label: 'Laporan Konfirmasi', render: tabLaporan };
   H.spvTabs.karyawan = { label: 'Daftar Karyawan', render: tabKaryawan };
+  H.spvTabs.tampilan = { label: 'Tampilan', render: tabTampilan };
   H.spvTabs.akun = { label: 'Akun', render: tabAkun };
   H.renderSpv = renderSpv;
   if ((location.hash || '') === '#/spv') renderSpv();

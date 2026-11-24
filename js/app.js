@@ -17,6 +17,7 @@
     const t = $('#toast'); t.textContent = msg; t.className = 'show' + (jenis === 'er' ? ' er' : '');
     clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, 4500);
   }
+  const setKat = n => { if (n >= 0) document.documentElement.dataset.kat = String(n % 5); else delete document.documentElement.dataset.kat; };
   const katIdx = nama => Math.max(0, (S.data.kategori || []).findIndex(k => k.nama === nama));
   const aktif = i => !i.kedaluwarsa || i.kedaluwarsa >= S.data.hariIni;
   const urut = a => a.slice().sort((x, y) => (y.pin - x.pin) || y.terbit.localeCompare(x.terbit));
@@ -52,6 +53,7 @@
   }
   function renderHome() {
     const d = S.data; if (!d) return;
+    LATAR.pasang($('#hlat'), d.tampilan); setKat(S.tab);
     $('#ic').innerHTML = d.kategori.map((k, n) => '<button type="button" data-tab="' + n + '"><span>' + svg(n % 5) + '</span>' + esc(k.singkat) + '</button>').join('') +
       '<button type="button" data-go="#/arsip"><span>' + svg(5) + '</span>Arsip</button>';
     $('#tabs').innerHTML = [{ singkat: 'Semua' }].concat(d.kategori).map((k, n) => '<button type="button" data-tab="' + (n - 1) + '" class="' + (S.tab === n - 1 ? 'on' : '') + '" aria-pressed="' + (S.tab === n - 1) + '">' + esc(k.singkat) + '</button>').join('');
@@ -68,7 +70,7 @@
   function renderDetail(id) {
     const i = S.data.informasi.find(x => x.id === id), dt = $('#dt'), kf = $('#kf');
     if (!i) { dt.innerHTML = '<p>Informasi tidak ditemukan atau belum tayang.</p>'; kf.classList.add('hid'); return; }
-    const n = katIdx(i.kategori) % 5;
+    const n = katIdx(i.kategori) % 5; setKat(n);
     dt.innerHTML = '<div class="th c' + n + '">' + svg(n) + (idOk(i.sampulId) ? '<img src="https://drive.google.com/thumbnail?id=' + i.sampulId + '&sz=w1200" alt="" referrerpolicy="no-referrer">' : '') + '</div>' +
       '<h1>' + esc(i.judul) + '</h1><div class="mt">' + esc(i.kategori) + ', nomor surat ' + esc(i.nomorSurat || '-') + ', terbit ' + tgl(i.terbit) + ', berlaku sampai ' + tgl(i.kedaluwarsa) + '</div>' +
       '<div class="body">' + esc(i.isi) + '</div>' +
@@ -94,7 +96,7 @@
   }
 
   function renderArsip() {
-    const q = $('#qa').value;
+    const q = $('#qa').value; setKat(-1);
     $('#al').innerHTML = urut(S.data.informasi.filter(i => cocok(i, q))).map(kartu).join('') || '<p class="muted">Tidak ada arsip yang cocok.</p>';
   }
 
@@ -116,7 +118,7 @@
     const v = m ? 'detail' : h === '#/arsip' ? 'arsip' : h === '#/spv' ? 'spv' : 'home', kunci = v + (m ? m[1] : '');
     ['home', 'detail', 'arsip', 'spv'].forEach(x => $('#v-' + x).classList.toggle('hid', x !== v));
     document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('on', a.dataset.nav === v));
-    if (v === 'spv') { if (window.HC.renderSpv && !segar) window.HC.renderSpv(); return; }
+    if (v === 'spv') { setKat(-1); if (window.HC.renderSpv && !segar) window.HC.renderSpv(); return; }
     if (!S.data) return;
     if (v === 'home') renderHome();
     else if (v === 'arsip') renderArsip();
@@ -151,6 +153,8 @@
   $('#qa').addEventListener('input', () => { if (S.data) renderArsip(); });
   $('#thn').textContent = new Date().getFullYear();
 
+  LATAR.pasang($('#hlat'), null);
+  setTimeout(() => { const h = $('.hero'); if (h) h.classList.remove('intro'); }, 1800);
   window.HC = { $, esc, idOk, tgl, toast, S, svg, refresh: () => muat(true), renderSpv: null };
   route(); muat();
 })();

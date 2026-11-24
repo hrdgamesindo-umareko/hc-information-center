@@ -26,12 +26,16 @@
 
 <main id="main" tabindex="-1">
   <div id="v-home">
-    <div class="hero"><div class="w">
-      <h1>Selamat datang di HC Information Center</h1>
-      <label class="sr" for="q">Cari informasi</label>
-      <input class="sb" id="q" type="search" placeholder="Cari judul, isi, atau nomor surat" autocomplete="off">
-      <div class="ic" id="ic"></div>
-    </div></div>
+    <div class="hero intro">
+      <div class="lat" id="hlat" aria-hidden="true"></div>
+      <div class="tint" aria-hidden="true"></div>
+      <div class="w"><div class="panel">
+        <h1>Selamat datang di HC Information Center</h1>
+        <label class="sr" for="q">Cari informasi</label>
+        <input class="sb" id="q" type="search" placeholder="Cari judul, isi, atau nomor surat" autocomplete="off">
+        <div class="ic" id="ic"></div>
+      </div></div>
+    </div>
     <div class="w">
       <section><div class="tabs" id="tabs"></div><div class="g3" id="news"></div><div class="pg" id="pg"></div></section>
       <section><div class="two">
@@ -74,6 +78,7 @@
 
 <script src="js/config.js" defer></script>
 <script src="js/api.js" defer></script>
+<script src="js/latar.js" defer></script>
 <script src="js/app.js" defer></script>
 <script src="js/admin.js" defer></script>
 </body>
