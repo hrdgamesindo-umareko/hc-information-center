@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://drive.google.com https://*.googleusercontent.com; connect-src https://script.google.com https://*.googleusercontent.com; frame-src https://drive.google.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>HC Information Center</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/tema.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Lewati ke konten</a>
+<header>
+  <div class="w bar">
+    <a class="logo" href="#/"><i></i>HC Information Center</a>
+    <nav aria-label="Navigasi utama">
+      <a href="#/" data-nav="home">Beranda</a>
+      <a href="#/arsip" data-nav="arsip">Arsip</a>
+      <a href="#/spv" data-nav="spv">Spv HC</a>
+      <button type="button" id="tema" class="ikon" aria-label="Ganti tema terang atau gelap">◐</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <div id="v-home">
+    <div class="hero"><div class="w">
+      <h1>Selamat datang di HC Information Center</h1>
+      <label class="sr" for="q">Cari informasi</label>
+      <input class="sb" id="q" type="search" placeholder="Cari judul, isi, atau nomor surat" autocomplete="off">
+      <div class="ic" id="ic"></div>
+    </div></div>
+    <div class="w">
+      <section><div class="tabs" id="tabs"></div><div class="g3" id="news"></div><div class="pg" id="pg"></div></section>
+      <section><div class="two">
+        <div><h2 class="t">Memo Penting</h2><div class="box" id="memo"></div></div>
+        <div><h2 class="t">Kalender</h2><div class="box">
+          <div class="chd"><button type="button" id="cp" class="ikon" aria-label="Bulan sebelumnya">‹</button><span id="cm" aria-live="polite"></span><button type="button" id="cn" class="ikon" aria-label="Bulan berikutnya">›</button></div>
+          <div class="cal" id="cal"></div><div id="agd"></div>
+        </div></div>
+      </div></section>
+      <div class="st" id="st"></div>
+    </div>
+  </div>
+
+  <div id="v-detail" class="hid"><div class="w"><section class="art">
+    <nav class="bc" aria-label="Jejak halaman"><a href="#/">Beranda</a> / Detail</nav>
+    <div id="dt"></div><div class="box" id="kf"></div>
+  </section></div></div>
+
+  <div id="v-arsip" class="hid"><div class="w"><section>
+    <h2 class="t">Arsip Informasi</h2>
+    <p class="muted">Termasuk informasi yang sudah melewati tanggal kedaluwarsa.</p>
+    <label class="sr" for="qa">Cari arsip</label>
+    <input id="qa" type="search" placeholder="Cari judul, isi, atau nomor surat" autocomplete="off">
+    <div class="g3" id="al"></div>
+  </section></div></div>
+
+  <div id="v-spv" class="hid"><div class="w"><section id="spv"></section></div></div>
+</main>
+
+<footer><div class="w"><span>Hak cipta HC <span id="thn"></span></span><span id="kontak"></span></div></footer>
+
+<div id="modal" class="hid" role="dialog" aria-modal="true" aria-labelledby="mjudul">
+  <div class="mbox">
+    <div class="mhead"><strong id="mjudul"></strong>
+      <span><a class="btn o" id="munduh" rel="noopener" href="#">Unduh</a> <button type="button" class="btn" id="mtutup">Tutup</button></span></div>
+    <iframe id="mframe" title="Pratinjau berkas" referrerpolicy="no-referrer"></iframe>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/config.js" defer></script>
+<script src="js/api.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="js/admin.js" defer></script>
+</body>
+</html>
